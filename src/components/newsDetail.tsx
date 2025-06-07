@@ -1,45 +1,40 @@
-import type { FC } from "react";
+import { Button, Image, Space, Typography } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
+import { type Article } from "./card";
 
-type NewsDetailProps = {
-  article: {
-    title: string;
-    content?: string;
-    urlToImage?: string;
-    description?: string;
-    url?: string;
-  };
-  onBack: () => void;
-};
+const { Title, Paragraph, Link } = Typography;
 
-const NewsDetail: FC<NewsDetailProps> = ({ article, onBack }) => {
+const NewsDetail = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const article = location.state?.article as Article | undefined;
+
+  if (!article) return <Paragraph className="p-4">No article data.</Paragraph>;
+
   return (
-    <div className="space-y-4">
-      <button
-        onClick={onBack}
-        className="text-blue-500 underline hover:text-blue-700"
-      >
-        ← Back to list
-      </button>
-      <h1 className="text-2xl font-bold">{article.title}</h1>
-      {article.urlToImage && (
-        <img
+    <div className="p-4">
+      <Space direction="vertical" size="middle" style={{ width: "100%" }}>
+        <Button type="link" onClick={() => navigate(-1)}>
+          ← Back
+        </Button>
+
+        <Title level={2}>{article.title}</Title>
+
+        <Image
           src={article.urlToImage}
           alt={article.title}
-          className="rounded-lg w-full object-cover"
+          width="100%"
+          style={{ borderRadius: 8 }}
+          placeholder
         />
-      )}
-      <p className="text-gray-700">{article.description}</p>
-      <p className="text-gray-800 mt-2">{article.content}</p>
-      {article.url && (
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 underline"
-        >
+
+        <Paragraph>{article.description}</Paragraph>
+        <Paragraph>{article.content}</Paragraph>
+
+        <Link href={article.url} target="_blank">
           Read more
-        </a>
-      )}
+        </Link>
+      </Space>
     </div>
   );
 };

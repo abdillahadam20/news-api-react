@@ -1,7 +1,11 @@
+import { Typography } from "antd";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const { Title, Paragraph } = Typography;
+
+// Type Data untuk artikel
 export type Article = {
   title: string;
   description: string;
@@ -10,6 +14,7 @@ export type Article = {
   url?: string;
 };
 
+// Fungsi untuk membuat slug dari judul artikel
 function slugify(text: string) {
   return text
     .toLowerCase()
@@ -21,12 +26,14 @@ const Card = ({
   category,
   page,
   pageSize,
+  query,
   onTotalResultsChange,
   onArticleClick,
 }: {
   category: string;
   page: number;
   pageSize: number;
+  query: string;
   onTotalResultsChange?: (total: number) => void;
   onArticleClick?: (article: Article) => void;
 }) => {
@@ -34,6 +41,7 @@ const Card = ({
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Mengambil artikel dari API News dan menyimpan ke state articles
   useEffect(() => {
     const fetchArticles = async () => {
       try {
@@ -46,6 +54,7 @@ const Card = ({
             country: "us",
             page,
             pageSize,
+            q: query,
           },
         });
 
@@ -61,14 +70,15 @@ const Card = ({
     };
 
     fetchArticles();
-  }, [category, onTotalResultsChange, page, pageSize]);
+  }, [category, onTotalResultsChange, page, pageSize, query]);
 
+  // Handler untuk menangani klik pada artikel
   const handleClick = (article: Article) => {
     if (onArticleClick) {
-      onArticleClick(article); // untuk detail tampilan di halaman yang sama
+      onArticleClick(article);
     } else {
       const slug = slugify(article.title);
-      navigate(`/${category}/${slug}`, { state: { article } }); // untuk routing ke detail page
+      navigate(`/${category}/${slug}`, { state: { article } });
     }
   };
 
@@ -85,12 +95,8 @@ const Card = ({
           onClick={() => handleClick(article)}
         >
           <div className="flex flex-col gap-1 flex-1">
-            <p className="text-[#111418] text-base font-bold leading-tight">
-              {article.title}
-            </p>
-            <p className="text-[#637488] text-sm font-normal leading-normal">
-              {article.description}
-            </p>
+            <Title level={3}>{article.title}</Title>
+            <Paragraph>{article.description}</Paragraph>
           </div>
           <div
             className="aspect-video rounded-lg bg-cover bg-center flex-shrink-0 w-full md:w-64"

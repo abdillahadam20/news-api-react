@@ -1,11 +1,13 @@
 import { MenuOutlined } from "@ant-design/icons";
 import { Drawer, Layout, Menu } from "antd";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 
+// Ambil komponen Header dari Layout Ant Design
 const { Header } = Layout;
 
+// Styled components
 const StyledHeader = styled(Header)`
   display: flex;
   justify-content: space-between;
@@ -41,6 +43,14 @@ const Title = styled.h2`
 
 const StyledMenu = styled(Menu)`
   border-bottom: none;
+  min-width: 0; /* Mencegah overflow */
+  flex: 1;
+
+  .ant-menu-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;
 
 const HamburgerButton = styled.button`
@@ -55,6 +65,7 @@ const HamburgerButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0; /* Mencegah tombol mengecil */
 `;
 
 const MenuScrollWrapper = styled.div`
@@ -89,15 +100,24 @@ const Navbar: React.FC<NavbarProps> = ({
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const checkIsMobile = () => window.innerWidth <= 768;
+  // Cek apakah screen ukuran mobile
+  const checkIsMobile = useCallback(() => window.innerWidth <= 768, []);
 
+  // Update isMobile tiap window di-resize
   useEffect(() => {
     let resizeTimer: number;
 
     const handleResize = () => {
       clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(() => {
-        setIsMobile(checkIsMobile());
+        const mobile = checkIsMobile();
+        setIsMobile((prevMobile) => {
+          // Hanya update jika ada perubahan
+          if (prevMobile !== mobile) {
+            return mobile;
+          }
+          return prevMobile;
+        });
       }, 100);
     };
 
@@ -113,8 +133,9 @@ const Navbar: React.FC<NavbarProps> = ({
       clearTimeout(resizeTimer);
       clearTimeout(forceCheck);
     };
-  }, []);
+  }, [checkIsMobile]);
 
+  // Ambil list kategori dari API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -122,8 +143,9 @@ const Navbar: React.FC<NavbarProps> = ({
           import.meta.env.VITE_NEWS_API_KEY
         }`;
         const response = await axios.get(url);
-
         const sources = response.data.sources as NewsSource[];
+
+        // Ambil kategori unik dari semua sources
         const uniqueCategories = Array.from(
           new Set(sources.map((source) => source.category))
         );
@@ -137,20 +159,38 @@ const Navbar: React.FC<NavbarProps> = ({
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (e: { key: string }) => {
-    onSelectCategory(e.key);
-    if (isMobile) setDrawerVisible(false);
-  };
+  // Handle klik kategori
+  const handleCategoryClick = useCallback(
+    (e: { key: string }) => {
+      onSelectCategory(e.key);
+      if (isMobile) {
+        setDrawerVisible(false);
+      }
+    },
+    [onSelectCategory, isMobile]
+  );
+
+  const handleDrawerClose = useCallback(() => {
+    setDrawerVisible(false);
+  }, []);
+
+  const handleHamburgerClick = useCallback(() => {
+    setDrawerVisible(true);
+  }, []);
 
   // Buat menuItems dan tandai item aktif dengan selectedCategory
-  const menuItems = categories.map((cat) => ({
-    key: cat,
-    label: cat.charAt(0).toUpperCase() + cat.slice(1),
-    style: {
-      color: "#111418",
-      fontWeight: selectedCategory === cat ? "bold" : 500,
-    },
-  }));
+  const menuItems = useMemo(
+    () =>
+      categories.map((cat) => ({
+        key: cat,
+        label: cat.charAt(0).toUpperCase() + cat.slice(1),
+        style: {
+          color: "#111418",
+          fontWeight: selectedCategory === cat ? "bold" : 500,
+        },
+      })),
+    [categories, selectedCategory]
+  );
 
   return (
     <MenuScrollWrapper>
@@ -168,7 +208,7 @@ const Navbar: React.FC<NavbarProps> = ({
         </LogoWrapper>
 
         {isMobile ? (
-          <HamburgerButton onClick={() => setDrawerVisible(true)}>
+          <HamburgerButton onClick={handleHamburgerClick}>
             <MenuOutlined />
           </HamburgerButton>
         ) : (
@@ -177,7 +217,7 @@ const Navbar: React.FC<NavbarProps> = ({
             selectable={false}
             items={menuItems}
             onClick={handleCategoryClick}
-            selectedKeys={[selectedCategory]} // Highlight kategori aktif
+            selectedKeys={[selectedCategory]}
           />
         )}
       </StyledHeader>
@@ -185,7 +225,7 @@ const Navbar: React.FC<NavbarProps> = ({
       <Drawer
         title="Categories"
         placement="left"
-        onClose={() => setDrawerVisible(false)}
+        onClose={handleDrawerClose}
         open={drawerVisible}
         styles={{ body: { padding: 0 } }}
       >
@@ -194,7 +234,7 @@ const Navbar: React.FC<NavbarProps> = ({
           selectable={false}
           items={menuItems}
           onClick={handleCategoryClick}
-          selectedKeys={[selectedCategory]} // Highlight kategori aktif di drawer juga
+          selectedKeys={[selectedCategory]}
         />
       </Drawer>
     </MenuScrollWrapper>

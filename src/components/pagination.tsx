@@ -1,3 +1,5 @@
+import { Button } from "antd";
+
 const Pagination = ({
   currentPage,
   totalPages,
@@ -27,20 +29,19 @@ const Pagination = ({
 
   return (
     <div className="flex items-center justify-center p-4 space-x-2">
-      <button
+      <Button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="size-10 flex items-center justify-center"
       >
         &lt;
-      </button>
+      </Button>
       {generatePages().map((page, i) =>
         page === "..." ? (
           <span key={i} className="size-10 flex items-center justify-center">
             ...
           </span>
         ) : (
-          <button
+          <Button
             key={i}
             onClick={() => onPageChange(page as number)}
             className={`size-10 flex items-center justify-center rounded-full ${
@@ -48,16 +49,15 @@ const Pagination = ({
             }`}
           >
             {page}
-          </button>
+          </Button>
         )
       )}
-      <button
+      <Button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="size-10 flex items-center justify-center"
       >
         &gt;
-      </button>
+      </Button>
     </div>
   );
 };
