@@ -25,8 +25,8 @@ A simple and responsive news app built with **React**, **Vite**, **TypeScript**,
 ### 1. Clone the project
 
 ```bash
-git clone https://github.com/your-username/news-today.git
-cd news-today
+git clone https://github.com/abdillahadam20/news-api-react.git
+cd news-api-react
 
 npm install
 # or
@@ -41,6 +41,7 @@ VITE_NEWS_API_URL=https://newsapi.org/v2
 ```
 
 ### 3. Run the project
+
 ```bash
 npm run dev
 # or
